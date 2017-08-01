@@ -13,16 +13,6 @@ public class Order extends BmobObject
     private String NAME;
     private String FOODNUM;
 
-    public String getFOODNUM()
-    {
-        return FOODNUM;
-    }
-
-    public void setFOODNUM(String FOODNUM)
-    {
-        this.FOODNUM = FOODNUM;
-    }
-
     public String getAPART()
     {
         return APART;
@@ -31,6 +21,16 @@ public class Order extends BmobObject
     public void setAPART(String APART)
     {
         this.APART = APART;
+    }
+
+    public String getFOODNUM()
+    {
+        return FOODNUM;
+    }
+
+    public void setFOODNUM(String FOODNUM)
+    {
+        this.FOODNUM = FOODNUM;
     }
 
     public String getDORMITORY()
