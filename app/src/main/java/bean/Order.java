@@ -8,10 +8,22 @@ import cn.bmob.v3.BmobObject;
 
 public class Order extends BmobObject
 {
+    private String ORDERNUM;
     private String APART;
     private String DORMITORY;
     private String NAME;
     private String FOODNUM;
+    //private String SUBMITDATETIME;
+
+    public String getORDERNUM()
+    {
+        return ORDERNUM;
+    }
+
+    public void setORDERNUM(String ORDERNUM)
+    {
+        this.ORDERNUM = ORDERNUM;
+    }
 
     public String getAPART()
     {
@@ -21,16 +33,6 @@ public class Order extends BmobObject
     public void setAPART(String APART)
     {
         this.APART = APART;
-    }
-
-    public String getFOODNUM()
-    {
-        return FOODNUM;
-    }
-
-    public void setFOODNUM(String FOODNUM)
-    {
-        this.FOODNUM = FOODNUM;
     }
 
     public String getDORMITORY()
@@ -52,4 +54,24 @@ public class Order extends BmobObject
     {
         this.NAME = NAME;
     }
+
+    public String getFOODNUM()
+    {
+        return FOODNUM;
+    }
+
+    public void setFOODNUM(String FOODNUM)
+    {
+        this.FOODNUM = FOODNUM;
+    }
+
+    /*public String getSUBMITDATETIME()
+    {
+        return SUBMITDATETIME;
+    }
+
+    public void setSUBMITDATETIME(String SUBMITDATETIME)
+    {
+        this.SUBMITDATETIME = SUBMITDATETIME;
+    }*/
 }
