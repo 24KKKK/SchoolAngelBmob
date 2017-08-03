@@ -4,10 +4,12 @@ Robolectric做单元测试,最新可能是4.1.2_r1_rc,
 其中@RunWith(RobolectricGradleTestRunner.class)表示用Robolectric的TestRunner来跑这些test，
 这就是为什么Robolectric可以检测到你调用了Android相关的类，然后截取这些调用，转到他们的Shadow类的原因。
 此外，@Config用来配置一些东西。
+下面两句话用于单元测试的javadoc
 @RunWith(RobolectricGradleTestRunner.class)
 @Config(constants = BuildConfig.class, sdk = 21)
 
 要使用Robolectric，需要做几步配置工作。
+
 首先需要将它和JUnit4加到你项目的dependencies里面，
 testCompile 'junit:junit:4.12'
 testCompile ’org.robolectric:robolectric:3.0-rc3’
