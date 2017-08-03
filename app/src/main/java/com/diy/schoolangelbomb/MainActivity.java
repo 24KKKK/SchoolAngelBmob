@@ -9,57 +9,62 @@ import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import bean.Order;
 import cn.bmob.v3.Bmob;
 import cn.bmob.v3.BmobQuery;
 import cn.bmob.v3.exception.BmobException;
+import cn.bmob.v3.listener.FindListener;
 import cn.bmob.v3.listener.SaveListener;
+import config.Constants;
 
 public class MainActivity extends Activity
 {
     //变量***********************************************************************
     private EditText mApart,mDormitory,mName,mFoodNum;
+    public String g_oldLastFiveNum = "";  //从数据库获取的流水号的后五位，生成新订单号需要用的
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
-        Log.d("进入oncreate:", " 成功");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         //初始化加载Bmob的SDK
-        Bmob.initialize(this,"a6f582ebc9e3bbfba14543b08551c623");
+        Bmob.initialize(this, Constants.Bmob_APPID);
         //实例化四个变量
         mApart = (EditText) findViewById(R.id.et_apart);
         mDormitory = (EditText) findViewById(R.id.et_dormitory);
         mName = (EditText) findViewById(R.id.et_name);
         mFoodNum = (EditText) findViewById(R.id.et_foodNum);
-        Log.d("oncreate", "成功");
+        //getOldLastFiveNum();
+        createNewLastFiveNum();
+        //createOrderNum();
     }
     //提交按钮点击事件
     public void bt_submit_onClick(View view){
-        String apart = mApart.getText().toString();
-        String dormitory = mDormitory.getText().toString();
-        String name = mName.getText().toString();
-        String foodNum = mFoodNum.getText().toString();
-        Log.d("onclick", "成功");
+        String strApart = mApart.getText().toString();
+        String strDormitory = mDormitory.getText().toString();
+        String strName = mName.getText().toString();
+        String strFoodNum = mFoodNum.getText().toString();
         //判断一下为空
-        if(apart.equals("")||dormitory.equals("")||foodNum.equals("")){
+        if(strApart.equals("")||strDormitory.equals("")||strFoodNum.equals("")){
             return ;
         }
 
         //获取时间和订单号
         //String DATETIME = createDate_Time();
-        String ORDERNUM = createOrderNum();
+        //String strOldLastFiveNum = getOldLastFiveNum();
+        String strOrderNum = createOrderNum();
         //不为空可以提交了
         Order order = new Order();
-        order.setORDERNUM(ORDERNUM);
-        order.setAPART(apart);
-        order.setDORMITORY(dormitory);
-        order.setNAME(name);
-        order.setFOODNUM(foodNum);
+        order.setORDERNUM(strOrderNum);
+        order.setAPART(strApart);
+        order.setDORMITORY(strDormitory);
+        order.setNAME(strName);
+        order.setFOODNUM(strFoodNum);
         //order.setSUBMITDATETIME(DATETIME);
-        Log.d("set:", "成功");
+        //Log.d("set:", "成功");
 
         //提交到服务器上
         order.save(new SaveListener<String>()
@@ -67,28 +72,28 @@ public class MainActivity extends Activity
             @Override
             public void done(String s, BmobException e)
             {
-                if (e==null)
-                {
+                if (e==null) {
                     Toast.makeText(MainActivity.this,"提交成功",Toast.LENGTH_LONG).show();
                 }
-                else
-                {
-                    System.out.println("提交失败"+e.toString());
+                else {
+                    //System.out.println("提交失败"+e.toString());
                     Toast.makeText(MainActivity.this,"提交失败"+e.toString(),Toast.LENGTH_LONG).show();
                 }
             }
         });
     }
 
-    //生成订单编号，返回String编号
+    //生成订单编号，返回String编号,调用下面的生成日期和生成后五位流水号方法,num数据库已提交订单的最新后五位流水号
     public String createOrderNum(){
-        String ORDERNUM;   //订单号
-        String DATETIME;   //时间日期
-        String NUM;        //后五位流水号
-        DATETIME = createDateTime();
-        NUM = createNum();
-        ORDERNUM = DATETIME+NUM;
-        return ORDERNUM;
+        String strOrderNum;   //新订单号19位
+        String strNewFiveNum;  //新订单后五位
+        String strDateTime;   //时间日期
+        //String NEWNUM;     //生成新订单的后五位流水号
+        strDateTime = createDateTime();
+        strNewFiveNum = createNewLastFiveNum();
+        strOrderNum = strDateTime+strNewFiveNum;
+        //Log.i("生成的新订单号：",strOrderNum);
+        return strOrderNum;
         //http://www.cnblogs.com/Matrix54/archive/2012/05/01/2478158.html
         //JAVA中获取当前系统时间以及修改
     }
@@ -101,78 +106,61 @@ public class MainActivity extends Activity
         DATETIME = dateFormat.format(date);  //获取的系统时间20170802094624
         return DATETIME;
     }
-    //生成后五位流水号
-    public String createNum(){
-        String NUM="00001";        //后五位流水号
+    //生成新的后五位流水号
+    public String createNewLastFiveNum(){
+        String strNewLastFiveNum=null;        //后五位流水号
         ////获取后五位流水号
-        String strNUM ="00000";
-        boolean flag = true;
-        if (flag){
-            NUM=haoAddOne(strNUM);
-            flag = false;
-        }
-        else {
-            NUM = haoAddOne(NUM);
-        }
-
-        return NUM;
+        String strOldFiveLastNum = getOldLastFiveNum();
+        Log.i("得到的旧五位流水号：",strOldFiveLastNum);
+        strNewLastFiveNum=haoAddOne(strOldFiveLastNum);
+        Log.i("生成新的后五位流水号:",strNewLastFiveNum);
+        //Log.i("生成新的后五位流水号:",strNewLastFiveNum);
+        return strNewLastFiveNum;
     }
     //后五位流水号加1
-    public static String haoAddOne(String str){
-        Integer intNUM = Integer.parseInt(str);
-        intNUM++;
-        String strNUM = intNUM.toString();
-        while (strNUM.length()<5){
-            strNUM = "0"+strNUM;
+    public String haoAddOne(String strOldFiveLastNum){
+        System.out.println("传递的旧五位流水号："+strOldFiveLastNum);
+        int intNum = 0;
+        try
+        {
+            intNum = Integer.valueOf(strOldFiveLastNum).intValue();
         }
-        return strNUM;
+        catch (NumberFormatException e)
+        {
+            e.printStackTrace();
+        }
+        intNum++;
+        System.out.println("+1之后的五位流水号："+intNum);
+        //String strNum = intNum.toString();
+        String strNum = Integer.toString(intNum);
+        while (strNum.length()<5){
+            strNum = "0"+strNum;
+        }
+        return strNum;
     }
-    //获取数据库中的最后一条记录的后五位流水号,程序有错，不用这个方法了
-    /*public String getLastNum(){
-        String bql ="select * from GameScore";
-        new BmobQuery<Order>().doSQLQuery(bql,new SQLQueryListener<Order>(){
 
+    //获取数据库中的最后一条记录的后五位流水号
+    public String getOldLastFiveNum(){
+        BmobQuery<Order> query = new BmobQuery<Order>();
+        query.order("-createdAt");//降序排列
+        query.setLimit(1);
+        query.findObjects(new FindListener<Order>() {
             @Override
-            public void done(BmobQueryResult<Order> result, BmobException e) {
-                if(e ==null){
-                    List<Order> list = (List<Order>) result.getResults();
-                    if(list!=null && list.size()>0){
-                        Log.i("smile", "查询成功.");
-                    }else{
-                        Log.i("smile", "查询成功，无数据返回");
-                    }
-                }else{
-                    Log.i("smile", "错误码："+e.getErrorCode()+"，错误描述："+e.getMessage());
+            public void done(List<Order> list, BmobException e) {
+                if(e==null) {
+                    String strNum = list.get(0).getORDERNUM();
+                    strNum = strNum.substring(14,19);
+                    //haoAddOne(strNum);
+                    //g_oldLastFiveNum = strNum;
+                    Log.i("最后一条后五位订单号",g_oldLastFiveNum);
+                }
+                else {
+                    Log.i("getOldLastFiveNum错误信息","错误信息为:"+e.getErrorCode()+","+e.getMessage());
                 }
             }
         });
-
-        return null;
-    }*/
-
-    //获取数据库中的最后一条记录的后五位流水号
-    public String getLastNum(){
-        final String[] arrNUM = {null};
-        final String NUM = "";
-        try{
-            BmobQuery<String> query = new BmobQuery<String>();
-            query.order("-createdAt");//降序排列
-        }
-        catch (Exception e){
-            System.out.println("e:"+e.toString());
-        }
-
-
-        /*query.findObjects(new FindListener<Order>()
-        {
-            @Override
-            public void done(List<Order> list, BmobException e)
-            {
-                String strNUM = list.get(0).getORDERNUM();
-                System.out.println("最后一条订单号："+strNUM);
-            }
-        });*/
-        return NUM;
+        System.out.println("get五位流水号："+g_oldLastFiveNum);
+        return g_oldLastFiveNum;
     }
 
     //生成提交日期的时间串，2017-08-02 10：35：09

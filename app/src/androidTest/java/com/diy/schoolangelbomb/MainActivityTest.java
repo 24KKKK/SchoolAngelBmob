@@ -14,4 +14,12 @@ public class MainActivityTest
         String ORDERNUM = mainActivity.createOrderNum();
         System.out.println("订单号为："+ORDERNUM);
     }
+
+    @Test
+    public void getLastNum() throws Exception
+    {
+        String fiveLastNum = mainActivity.getLastNum();
+        System.out.println("最后五位数："+fiveLastNum);
+        //mainActivity.getLastNum();
+    }
 }
